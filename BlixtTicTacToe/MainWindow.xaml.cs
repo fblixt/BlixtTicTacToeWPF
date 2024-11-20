@@ -19,6 +19,8 @@ namespace BlixtTicTacToe
         public MainWindow()
         {
             InitializeComponent();
+            EasyButton.Visibility = Visibility.Hidden;
+            ImpossibleButton.Visibility = Visibility.Hidden;
         }
 
         private bool xIsUp = true;
@@ -84,7 +86,7 @@ namespace BlixtTicTacToe
                 }
             }
             PlayerX.Background = Brushes.LightGreen;
-            PlayerO.Background = Brushes.LightGray;
+            PlayerO.ClearValue(Button.BackgroundProperty);
             xIsUp = true;
             gameOver = false;
             gameLogic.NewGame();
@@ -143,7 +145,7 @@ namespace BlixtTicTacToe
                     {
                         gameOver = true;
                         GameOver();
-                        PlayerX.Background = Brushes.LightGray;
+                        PlayerX.ClearValue(Button.BackgroundProperty);
                         PlayerO.Background = Brushes.LightGray;
                         MessageBox.Show("It's a draw!");
                     }
@@ -159,13 +161,41 @@ namespace BlixtTicTacToe
             if (xIsUp) 
             {
                 PlayerX.Background = Brushes.LightGreen;
-                PlayerO.Background = Brushes.LightGray;
+                PlayerO.ClearValue(Button.BackgroundProperty);
             }
             else
             {
-                PlayerX.Background = Brushes.LightGray;
+                PlayerX.ClearValue(Button.BackgroundProperty);
                 PlayerO.Background = Brushes.LightGreen;
             }
+        }
+
+        private void OneOnOne(object sender, RoutedEventArgs e)
+        {
+            OneOnOneButton.Background = Brushes.LightGreen;
+            OneOnComButton.ClearValue(Button.BackgroundProperty);
+            EasyButton.Visibility = Visibility.Hidden;
+            ImpossibleButton.Visibility = Visibility.Hidden;
+        }
+
+        private void OneOnCom(object sender, RoutedEventArgs e)
+        {
+            OneOnComButton.Background = Brushes.LightGreen;
+            OneOnOneButton.ClearValue(Button.BackgroundProperty);
+            EasyButton.Visibility = Visibility.Visible;
+            ImpossibleButton.Visibility = Visibility.Visible;
+        }
+
+        private void Easy(object sender, RoutedEventArgs e)
+        {
+            EasyButton.Background = Brushes.LightGreen;
+            ImpossibleButton.ClearValue(Button.BackgroundProperty);
+        }
+
+        private void Impossible(object sender, RoutedEventArgs e)
+        {
+            ImpossibleButton.Background = Brushes.LightGreen;
+            EasyButton.ClearValue(Button.BackgroundProperty);
         }
     }
 }
