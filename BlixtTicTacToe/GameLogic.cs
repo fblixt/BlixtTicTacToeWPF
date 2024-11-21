@@ -58,6 +58,30 @@ namespace BlixtTicTacToe
             }
             return true;
         }
+
+        public (int row, int col)? GetComMark()
+        {
+            var emptyButtons = new List<(int row, int col)>();
+
+            for (int row = 0; row < 3; row++)
+            {
+                for (int col = 0; col < 3; col++)
+                {
+                    if (board[row, col] == null)
+                    {
+                        emptyButtons.Add((row, col));
+                    }
+                }
+            }
+
+            if (emptyButtons.Count == 0)
+                return null;
+
+            Random random = new();
+            int index = random.Next(emptyButtons.Count);
+            return emptyButtons[index];
+        }
+
     }
 
 }
