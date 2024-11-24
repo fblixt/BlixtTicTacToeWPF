@@ -59,7 +59,7 @@ namespace BlixtTicTacToe
             return true;
         }
 
-        public (int row, int col)? GetComMark()
+        public (int row, int col) GetComMark()
         {
             var emptyButtons = new List<(int row, int col)>();
 
@@ -73,9 +73,6 @@ namespace BlixtTicTacToe
                     }
                 }
             }
-
-            if (emptyButtons.Count == 0)
-                return null;
 
             Random random = new();
             int index = random.Next(emptyButtons.Count);

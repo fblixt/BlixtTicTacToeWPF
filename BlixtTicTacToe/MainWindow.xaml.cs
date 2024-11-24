@@ -6,6 +6,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -32,16 +33,13 @@ namespace BlixtTicTacToe
             BottomLeftButton.Tag = (row: 2, col: 0);
             BottomCenterButton.Tag = (row: 2, col: 1);
             BottomRightButton.Tag = (row: 2, col: 2);
-
-            EasyButton.Visibility = Visibility.Hidden;
-            ImpossibleButton.Visibility = Visibility.Hidden;
         }
 
-        private bool xIsUp = true;
         private GameLogic gameLogic = new();
+        private bool xIsUp = true;
         private bool gameOver = false;
         private bool gameActive = false;
-        private bool gameOnCom = false;
+        private bool gameOnCom = true;
 
         private Image GetGameButtonImage(string fileName)
         {
@@ -53,7 +51,6 @@ namespace BlixtTicTacToe
 
             return image;
         }
-
         private void NewGame(object sender, RoutedEventArgs e)
         {
             MessageBoxResult result = new();
@@ -77,66 +74,29 @@ namespace BlixtTicTacToe
         }
         private void SetNewGame()
         {
-            foreach (var child in Row1.Children)
-            {
-                if (child is Button button && button != null)
-                {
-                    button.Content = null;
-                    button.IsEnabled = true;
-                }
-            }
-            foreach (var child in Row2.Children)
-            {
-                if (child is Button button && button != null)
-                {
-                    button.Content = null;
-                    button.IsEnabled = true;
-                }
-            }
-            foreach (var child in Row3.Children)
-            {
-                if (child is Button button && button != null)
-                {
-                    button.Content = null;
-                    button.IsEnabled = true;
-                }
-            }
+            EnableBoard();
+            ClearBoard();
 
-            PlayerX.Background = Brushes.LightGreen;
-            PlayerO.ClearValue(Button.BackgroundProperty);
+            PlayerXButton.Background = Brushes.LightGreen;
+            PlayerOButton.ClearValue(Button.BackgroundProperty);
 
             xIsUp = true;
             gameOver = false;
             gameActive = false;
-            ActivateConfigButtons();
+            StartGameButton.IsEnabled = true;
+            StartGameButton.Content = "Start Game";
+            NewGameButton.ClearValue(Button.BackgroundProperty);
+            EnableConfigButtons();
             gameLogic.NewGame();
         }
         private void GameOver()
         {
-            foreach (var child in Row1.Children)
-            {
-                if (child is Button button)
-                {
-                    button.IsEnabled = false;
-                }
-            }
-            foreach (var child in Row2.Children)
-            {
-                if (child is Button button)
-                {
-                    button.IsEnabled = false;
-                }
-            }
-            foreach (var child in Row3.Children)
-            {
-                if (child is Button button)
-                {
-                    button.IsEnabled = false;
-                }
-            }
+            DisableBoard();
+            StartGameButton.Content = "Start Game";
+            StartGameButton.IsEnabled = false;
+            NewGameButton.Background = Brushes.PowderBlue;
         }
-
-        private async void SetMark(object sender, RoutedEventArgs e)
+        private void SetMark(object sender, RoutedEventArgs e)
         {
             if (gameOver)
             {
@@ -150,32 +110,45 @@ namespace BlixtTicTacToe
                 {
                     clickedButton.Content = GetGameButtonImage(gameLogic.CurrentPlayer);
 
-                    if (!gameActive) { LockConfigButtons(); }
+                    if (!gameActive) 
+                    { 
+                        ActivateGame();
+                    }
 
                     string? winner = gameLogic.CheckWinner();
                     CheckGame(winner);
 
                     if (gameOnCom && !gameOver)
                     {
-                        await Task.Delay(1000);
-
-                        var position = gameLogic.GetComMark();
-                        (row, col) = position.Value;
-                        Button comButton = GetComButton(row, col);
-
-                        if (gameLogic.SetMark(row, col))
-                        {
-                            comButton.Content = GetGameButtonImage(gameLogic.CurrentPlayer);
-                            winner = gameLogic.CheckWinner();
-                            CheckGame(winner);
-                        }
+                        GetComMark();
                     }
                 }
             }
         }
-
-        private Button GetComButton(int row, int col)
+        private void StartLoading()
         {
+            var storyboard = (Storyboard)FindResource("SpinAnimation");
+            storyboard.Begin();
+        }
+        private void StopLoading()
+        {
+            var storyboard = (Storyboard)FindResource("SpinAnimation");
+            storyboard.Stop();
+        }
+        private async void GetComMark()
+        {
+            DisableBoard();
+            LoadingCanvas.Visibility = Visibility.Visible;
+            StartLoading();
+
+            await Task.Delay(500);
+
+            StopLoading();
+            LoadingCanvas.Visibility = Visibility.Collapsed;
+            EnableBoard();
+
+            var (row, col) = gameLogic.GetComMark();
+
             Button comButton = row switch
             {
                 0 when col == 0 => TopLeftButton,
@@ -189,9 +162,15 @@ namespace BlixtTicTacToe
                 2 when col == 2 => BottomRightButton,
                 _ => throw new InvalidOperationException("Invalid position")
             };
-            return comButton;
-        }
 
+            if (gameLogic.SetMark(row, col))
+            {
+                comButton.Content = GetGameButtonImage(gameLogic.CurrentPlayer);
+                var winner = gameLogic.CheckWinner();
+                CheckGame(winner);
+            }
+
+        }
         private void CheckGame(string? winner)
         {
             if (winner != null)
@@ -205,30 +184,28 @@ namespace BlixtTicTacToe
             {
                 gameOver = true;
                 GameOver();
-                PlayerX.ClearValue(Button.BackgroundProperty);
-                PlayerO.ClearValue(Button.BackgroundProperty);
+                PlayerXButton.ClearValue(Button.BackgroundProperty);
+                PlayerOButton.ClearValue(Button.BackgroundProperty);
                 MessageBox.Show("It's a draw!");
             }
             else
                 ChangePlayer();
         }
-
         private void ChangePlayer()
         {
             xIsUp = !xIsUp;
             if (xIsUp)
             {
-                PlayerX.Background = Brushes.LightGreen;
-                PlayerO.ClearValue(Button.BackgroundProperty);
+                PlayerXButton.Background = Brushes.LightGreen;
+                PlayerOButton.ClearValue(Button.BackgroundProperty);
             }
             else
             {
-                PlayerX.ClearValue(Button.BackgroundProperty);
-                PlayerO.Background = Brushes.LightGreen;
+                PlayerXButton.ClearValue(Button.BackgroundProperty);
+                PlayerOButton.Background = Brushes.LightGreen;
             }
         }
-
-        private void LockConfigButtons()
+        private void DisableConfigButtons()
         {
             if (OneOnOneButton.Background is SolidColorBrush OneOnOne && OneOnOne.Color != Colors.LightGreen)
             {
@@ -253,10 +230,9 @@ namespace BlixtTicTacToe
             if (InfiniteGameButton.Background is SolidColorBrush Infinite && Infinite.Color != Colors.LightGreen)
             {
                 InfiniteGameButton.IsEnabled = false;
-            }
-            gameActive = true;
+            }            
         }
-        private void ActivateConfigButtons()
+        private void EnableConfigButtons()
         {
             OneOnOneButton.IsEnabled = true;
             OneOnComButton.IsEnabled = true;
@@ -265,7 +241,84 @@ namespace BlixtTicTacToe
             StandardGameButton.IsEnabled = true;
             InfiniteGameButton.IsEnabled = true;
         }
-
+        private void EnableBoard()
+        {
+            foreach (var child in Row1.Children)
+            {
+                if (child is Button button)
+                {
+                    button.IsEnabled = true;
+                }
+            }
+            foreach (var child in Row2.Children)
+            {
+                if (child is Button button)
+                {
+                    button.IsEnabled = true;
+                }
+            }
+            foreach (var child in Row3.Children)
+            {
+                if (child is Button button)
+                {
+                    button.IsEnabled = true;
+                }
+            }
+        }
+        private void DisableBoard()
+        {
+            foreach (var child in Row1.Children)
+            {
+                if (child is Button button)
+                {
+                    button.IsEnabled = false;
+                }
+            }
+            foreach (var child in Row2.Children)
+            {
+                if (child is Button button)
+                {
+                    button.IsEnabled = false;
+                }
+            }
+            foreach (var child in Row3.Children)
+            {
+                if (child is Button button)
+                {
+                    button.IsEnabled = false;
+                }
+            }
+        }
+        private void ClearBoard()
+        {
+            foreach (var child in Row1.Children)
+            {
+                if (child is Button button && button != null)
+                {
+                    button.Content = null;
+                }
+            }
+            foreach (var child in Row2.Children)
+            {
+                if (child is Button button && button != null)
+                {
+                    button.Content = null;
+                }
+            }
+            foreach (var child in Row3.Children)
+            {
+                if (child is Button button && button != null)
+                {
+                    button.Content = null;
+                }
+            }
+        }
+        private void ActivateGame()
+        {
+            gameActive = true;
+            StartGameButton.Content = "Game Started";
+            DisableConfigButtons();
+        }
         private void OneOnOne(object sender, RoutedEventArgs e)
         {
             gameOnCom = false;
@@ -273,8 +326,9 @@ namespace BlixtTicTacToe
             OneOnComButton.ClearValue(Button.BackgroundProperty);
             EasyButton.Visibility = Visibility.Hidden;
             ImpossibleButton.Visibility = Visibility.Hidden;
+            PlayerXButton.Content = "Player X";
+            PlayerOButton.Content = "Player O";
         }
-
         private void OneOnCom(object sender, RoutedEventArgs e)
         {
             gameOnCom = true;
@@ -282,30 +336,68 @@ namespace BlixtTicTacToe
             OneOnOneButton.ClearValue(Button.BackgroundProperty);
             EasyButton.Visibility = Visibility.Visible;
             ImpossibleButton.Visibility = Visibility.Visible;
+            PlayerXButton.Content = "Player - X";
+            PlayerOButton.Content = "Com - O";
         }
-
         private void Easy(object sender, RoutedEventArgs e)
         {
             EasyButton.Background = Brushes.LightGreen;
             ImpossibleButton.ClearValue(Button.BackgroundProperty);
         }
-
         private void Impossible(object sender, RoutedEventArgs e)
         {
             ImpossibleButton.Background = Brushes.LightGreen;
             EasyButton.ClearValue(Button.BackgroundProperty);
         }
-
         private void StandardGame(object sender, RoutedEventArgs e)
         {
             StandardGameButton.Background = Brushes.LightGreen;
             InfiniteGameButton.ClearValue(Button.BackgroundProperty);
         }
-
         private void InfiniteGame(object sender, RoutedEventArgs e)
         {
             InfiniteGameButton.Background = Brushes.LightGreen;
             StandardGameButton.ClearValue(Button.BackgroundProperty);
+        }
+        private void StartGame(object sender, RoutedEventArgs e)
+        {
+            ActivateGame();
+            if(gameOnCom && (string)PlayerXButton.Content == "Com - X")
+                GetComMark();
+        }
+        private void StartCom()
+        {
+            if (!gameActive && (string)PlayerXButton.Content == "Com - X")
+            {
+                DisableBoard();
+
+            }
+        }
+
+        private void PlayerX(object sender, RoutedEventArgs e)
+        {
+            if (!gameActive && gameOnCom)
+            {
+                PlayerXButton.Content = "Player - X";
+                PlayerOButton.Content = "Com - O";
+                StartGameButton.ClearValue(Button.FontWeightProperty);
+                StartGameButton.ClearValue(Button.BorderThicknessProperty);
+                StartGameButton.Height = 30;
+                StartGameButton.Width = 100;
+            }
+        }
+
+        private void PlayerO(object sender, RoutedEventArgs e)
+        {
+            if (!gameActive && gameOnCom)
+            {
+                PlayerXButton.Content = "Com - X";
+                PlayerOButton.Content = "Player - O";
+                StartGameButton.FontWeight = FontWeights.Bold;
+                StartGameButton.BorderThickness = new Thickness(2);
+                StartGameButton.Height = 35;
+                StartGameButton.Width = 110;
+            }
         }
     }
 }

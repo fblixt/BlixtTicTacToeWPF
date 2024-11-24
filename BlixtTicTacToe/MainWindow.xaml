@@ -6,7 +6,28 @@
         xmlns:local="clr-namespace:BlixtTicTacToe"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+
+    <Window.Resources>
+
+        <Style x:Key="GameButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="100" />
+            <Setter Property="Width" Value="100" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Storyboard x:Key="SpinAnimation" RepeatBehavior="Forever">
+            <DoubleAnimation
+                Storyboard.TargetName="SpinnerRotateTransform"
+                Storyboard.TargetProperty="Angle"
+                From="0" To="360" Duration="0:0:0.5" />
+        </Storyboard>
+
+    </Window.Resources>
+
     <Grid>
+
         <Grid.RowDefinitions>
             <RowDefinition></RowDefinition>
             <RowDefinition Height="304"></RowDefinition>
@@ -17,24 +38,43 @@
             <ColumnDefinition Width="304"></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
+
+        <Canvas x:Name="LoadingCanvas" Visibility="Hidden" Width="50" Height="50" Grid.Row="2" Grid.Column="1">
+            <Ellipse x:Name="LoadingSpinner" Width="40" Height="40" Stroke="Green" StrokeThickness="7" 
+             StrokeDashArray="1,2" RenderTransformOrigin="0.5,0.5">
+                <Ellipse.RenderTransform>
+                    <RotateTransform x:Name="SpinnerRotateTransform" />
+                </Ellipse.RenderTransform>
+            </Ellipse>
+        </Canvas>
+
         <StackPanel HorizontalAlignment="Right" Grid.Row="1" Margin="10">
             <Button x:Name="NewGameButton" Grid.Row="1" Height="30" Width="100" Margin="5" Click="NewGame">New Game</Button>
             <StackPanel Margin="10">
                 <Button x:Name="OneOnOneButton" Grid.Row="1" Height="30" Width="80" Margin="15" Click="OneOnOne">1 vs 1</Button>
-                <Button x:Name="OneOnComButton" Grid.Row="1" Height="30" Width="80" Margin="5" Click="OneOnCom">1 vs Com</Button>
+                <Button x:Name="OneOnComButton" Grid.Row="1" Height="30" Width="80" Margin="5" Background = "LightGreen" Click="OneOnCom">1 vs Com</Button>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" >
-                    <Button x:Name="EasyButton" Grid.Row="1" Height="30" Width="80" Margin="5" Click="Easy">Easy</Button>
+                    <Button x:Name="EasyButton" Grid.Row="1" Height="30" Width="80" Margin="5" Background = "LightGreen" Click="Easy">Easy</Button>
                     <Button x:Name="ImpossibleButton" Grid.Row="1" Height="30" Width="80" Margin="5" Click="Impossible">Impossible</Button>
                 </StackPanel>
             </StackPanel>
         </StackPanel>
+        
+        <StackPanel Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="15">
+            <Button x:Name="PlayerXButton" Grid.Row="1" Height="30" Width="90" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,0" Background = "LightGreen" Click="PlayerX">Player - X</Button>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="15">
+            <Button x:Name="PlayerOButton" Height="30" Width="90" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="PlayerO">Com - O</Button>
+        </StackPanel>
+
         <StackPanel Grid.Row="1" Grid.Column="2" Margin="10">
-            <Button x:Name="StandardGameButton" Height="30" Width="90" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5" Click="StandardGame">Standard Game</Button>
+            <Button x:Name="StandardGameButton" Height="30" Width="90" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5" Background = "LightGreen" Click="StandardGame">Standard Game</Button>
             <Button x:Name="InfiniteGameButton" Height="30" Width="90" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5" Click="InfiniteGame">Infinite Game</Button>
         </StackPanel>
-        <Button x:Name="PlayerX" Grid.Row="1" Height="30" Width="90" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="15" Background = "LightGreen">Player X</Button>
-        <Button x:Name="PlayerO" Grid.Row="1" Grid.Column="2" Height="30" Width="90" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="15">Player O</Button>
 
+        <Button x:Name="StartGameButton" Grid.Column="1" Height="30" Width="100" HorizontalAlignment="Center" VerticalAlignment="Center" Background = "PowderBlue" Click="StartGame">Start game</Button>
+        
         <StackPanel  x:Name="BoardButtons" 
             Grid.Row="1"
             Grid.Column="1"
@@ -92,5 +132,7 @@
                 </Button>
             </StackPanel>
         </StackPanel>
+
     </Grid>
+
 </Window>
