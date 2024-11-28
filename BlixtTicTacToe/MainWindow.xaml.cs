@@ -40,6 +40,10 @@ namespace BlixtTicTacToe
         private bool gameOver = false;
         private bool gameActive = false;
         private bool gameOnCom = true;
+        private bool easyGame = true;
+        private bool infiniteGame = false;
+        //private int moves;
+        private string CurrentPlayer => xIsUp ? "x" : "o";
 
         private Image GetGameButtonImage(string fileName)
         {
@@ -51,11 +55,12 @@ namespace BlixtTicTacToe
 
             return image;
         }
+
         private void NewGame(object sender, RoutedEventArgs e)
         {
             MessageBoxResult result = new();
 
-            if (gameOver)
+            if (gameOver || !gameActive)
             {
                 SetNewGame();
             }
@@ -72,6 +77,7 @@ namespace BlixtTicTacToe
                 }
             }
         }
+
         private void SetNewGame()
         {
             EnableBoard();
@@ -80,6 +86,7 @@ namespace BlixtTicTacToe
             PlayerXButton.Background = Brushes.LightGreen;
             PlayerOButton.ClearValue(Button.BackgroundProperty);
 
+            //moves = 0;
             xIsUp = true;
             gameOver = false;
             gameActive = false;
@@ -88,7 +95,14 @@ namespace BlixtTicTacToe
             NewGameButton.ClearValue(Button.BackgroundProperty);
             EnableConfigButtons();
             gameLogic.NewGame();
+            if ((string)PlayerXButton.Content == "Com - X")
+            {
+                ComAwaitStartSetUp();
+                SelectX.Visibility = Visibility.Visible;
+                SelectO.Visibility = Visibility.Visible;
+            }
         }
+
         private void GameOver()
         {
             DisableBoard();
@@ -96,6 +110,7 @@ namespace BlixtTicTacToe
             StartGameButton.IsEnabled = false;
             NewGameButton.Background = Brushes.PowderBlue;
         }
+
         private void SetMark(object sender, RoutedEventArgs e)
         {
             if (gameOver)
@@ -110,8 +125,8 @@ namespace BlixtTicTacToe
                 {
                     clickedButton.Content = GetGameButtonImage(gameLogic.CurrentPlayer);
 
-                    if (!gameActive) 
-                    { 
+                    if (!gameActive)
+                    {
                         ActivateGame();
                     }
 
@@ -124,17 +139,60 @@ namespace BlixtTicTacToe
                     }
                 }
             }
+
+            //if (infiniteGame && moves >= 6)
+            //{
+            //    DisableAllExceptCurrentPlayer(CurrentPlayer);
+
+            //}
         }
+
+        private void DisableAllExceptCurrentPlayer(string currentPlayer)
+        {
+            foreach (var child in Row1.Children)
+            {
+                if (child is Button button)
+                {
+                    if (button.Tag is (int row, int col) && gameLogic.GetPlayerAtPosition(row, col) != currentPlayer)
+                    {
+                        button.IsEnabled = false;
+                    }
+                }
+            }
+            foreach (var child in Row2.Children)
+            {
+                if (child is Button button)
+                {
+                    if (button.Tag is (int row, int col) && gameLogic.GetPlayerAtPosition(row, col) != currentPlayer)
+                    {
+                        button.IsEnabled = false;
+                    }
+                }
+            }
+            foreach (var child in Row3.Children)
+            {
+                if (child is Button button)
+                {
+                    if (button.Tag is (int row, int col) && gameLogic.GetPlayerAtPosition(row, col) != currentPlayer)
+                    {
+                        button.IsEnabled = false;
+                    }
+                }
+            }
+        }
+
         private void StartLoading()
         {
             var storyboard = (Storyboard)FindResource("SpinAnimation");
             storyboard.Begin();
         }
+
         private void StopLoading()
         {
             var storyboard = (Storyboard)FindResource("SpinAnimation");
             storyboard.Stop();
         }
+
         private async void GetComMark()
         {
             DisableBoard();
@@ -147,7 +205,12 @@ namespace BlixtTicTacToe
             LoadingCanvas.Visibility = Visibility.Collapsed;
             EnableBoard();
 
-            var (row, col) = gameLogic.GetComMark();
+            //string com = xIsUp ? "x" : "o";
+            int row, col;
+            if (easyGame)
+                (row, col) = gameLogic.GetEasyComMark();
+            else
+                (row, col) = gameLogic.GetImpossibleComMark();
 
             Button comButton = row switch
             {
@@ -171,6 +234,7 @@ namespace BlixtTicTacToe
             }
 
         }
+
         private void CheckGame(string? winner)
         {
             if (winner != null)
@@ -191,6 +255,7 @@ namespace BlixtTicTacToe
             else
                 ChangePlayer();
         }
+
         private void ChangePlayer()
         {
             xIsUp = !xIsUp;
@@ -204,7 +269,9 @@ namespace BlixtTicTacToe
                 PlayerXButton.ClearValue(Button.BackgroundProperty);
                 PlayerOButton.Background = Brushes.LightGreen;
             }
+            //moves++;
         }
+
         private void DisableConfigButtons()
         {
             if (OneOnOneButton.Background is SolidColorBrush OneOnOne && OneOnOne.Color != Colors.LightGreen)
@@ -230,8 +297,9 @@ namespace BlixtTicTacToe
             if (InfiniteGameButton.Background is SolidColorBrush Infinite && Infinite.Color != Colors.LightGreen)
             {
                 InfiniteGameButton.IsEnabled = false;
-            }            
+            }
         }
+
         private void EnableConfigButtons()
         {
             OneOnOneButton.IsEnabled = true;
@@ -241,6 +309,7 @@ namespace BlixtTicTacToe
             StandardGameButton.IsEnabled = true;
             InfiniteGameButton.IsEnabled = true;
         }
+
         private void EnableBoard()
         {
             foreach (var child in Row1.Children)
@@ -265,6 +334,7 @@ namespace BlixtTicTacToe
                 }
             }
         }
+
         private void DisableBoard()
         {
             foreach (var child in Row1.Children)
@@ -289,6 +359,7 @@ namespace BlixtTicTacToe
                 }
             }
         }
+
         private void ClearBoard()
         {
             foreach (var child in Row1.Children)
@@ -313,12 +384,20 @@ namespace BlixtTicTacToe
                 }
             }
         }
+
         private void ActivateGame()
         {
             gameActive = true;
             StartGameButton.Content = "Game Started";
             DisableConfigButtons();
+            StartGameButton.ClearValue(Button.FontWeightProperty);
+            StartGameButton.ClearValue(Button.BorderThicknessProperty);
+            StartGameButton.Height = 30;
+            StartGameButton.Width = 100;
+            SelectX.Visibility = Visibility.Hidden;
+            SelectO.Visibility = Visibility.Hidden;
         }
+
         private void OneOnOne(object sender, RoutedEventArgs e)
         {
             gameOnCom = false;
@@ -328,7 +407,11 @@ namespace BlixtTicTacToe
             ImpossibleButton.Visibility = Visibility.Hidden;
             PlayerXButton.Content = "Player X";
             PlayerOButton.Content = "Player O";
+            SelectX.Visibility = Visibility.Hidden;
+            SelectO.Visibility = Visibility.Hidden;
+            EnableBoard();
         }
+
         private void OneOnCom(object sender, RoutedEventArgs e)
         {
             gameOnCom = true;
@@ -338,40 +421,56 @@ namespace BlixtTicTacToe
             ImpossibleButton.Visibility = Visibility.Visible;
             PlayerXButton.Content = "Player - X";
             PlayerOButton.Content = "Com - O";
+            SelectX.Visibility = Visibility.Visible;
+            SelectO.Visibility = Visibility.Visible;
+            if ((string)PlayerXButton.Content == "Com - X")
+            {
+                ComAwaitStartSetUp();
+            }
         }
+
         private void Easy(object sender, RoutedEventArgs e)
         {
             EasyButton.Background = Brushes.LightGreen;
             ImpossibleButton.ClearValue(Button.BackgroundProperty);
+            easyGame = true;
         }
+
         private void Impossible(object sender, RoutedEventArgs e)
         {
             ImpossibleButton.Background = Brushes.LightGreen;
             EasyButton.ClearValue(Button.BackgroundProperty);
+            easyGame = false;
         }
+
         private void StandardGame(object sender, RoutedEventArgs e)
         {
             StandardGameButton.Background = Brushes.LightGreen;
             InfiniteGameButton.ClearValue(Button.BackgroundProperty);
+            infiniteGame = false;
         }
+
         private void InfiniteGame(object sender, RoutedEventArgs e)
         {
             InfiniteGameButton.Background = Brushes.LightGreen;
             StandardGameButton.ClearValue(Button.BackgroundProperty);
+            infiniteGame = true;
         }
+
         private void StartGame(object sender, RoutedEventArgs e)
         {
             ActivateGame();
-            if(gameOnCom && (string)PlayerXButton.Content == "Com - X")
+            if (gameOnCom && (string)PlayerXButton.Content == "Com - X")
                 GetComMark();
         }
-        private void StartCom()
-        {
-            if (!gameActive && (string)PlayerXButton.Content == "Com - X")
-            {
-                DisableBoard();
 
-            }
+        private void ComAwaitStartSetUp()
+        {
+            StartGameButton.FontWeight = FontWeights.Bold;
+            StartGameButton.BorderThickness = new Thickness(2);
+            StartGameButton.Height = 35;
+            StartGameButton.Width = 110;
+            DisableBoard();
         }
 
         private void PlayerX(object sender, RoutedEventArgs e)
@@ -384,6 +483,7 @@ namespace BlixtTicTacToe
                 StartGameButton.ClearValue(Button.BorderThicknessProperty);
                 StartGameButton.Height = 30;
                 StartGameButton.Width = 100;
+                EnableBoard();
             }
         }
 
@@ -393,10 +493,7 @@ namespace BlixtTicTacToe
             {
                 PlayerXButton.Content = "Com - X";
                 PlayerOButton.Content = "Player - O";
-                StartGameButton.FontWeight = FontWeights.Bold;
-                StartGameButton.BorderThickness = new Thickness(2);
-                StartGameButton.Height = 35;
-                StartGameButton.Width = 110;
+                ComAwaitStartSetUp();
             }
         }
     }

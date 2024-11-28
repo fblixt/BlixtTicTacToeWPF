@@ -61,10 +61,12 @@
         </StackPanel>
         
         <StackPanel Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="15">
+            <TextBlock x:Name="SelectX" HorizontalAlignment="Center" >Select X or O</TextBlock>
             <Button x:Name="PlayerXButton" Grid.Row="1" Height="30" Width="90" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,0" Background = "LightGreen" Click="PlayerX">Player - X</Button>
         </StackPanel>
 
         <StackPanel Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="15">
+            <TextBlock x:Name="SelectO" HorizontalAlignment="Center" >Select X or O</TextBlock>
             <Button x:Name="PlayerOButton" Height="30" Width="90" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="PlayerO">Com - O</Button>
         </StackPanel>
 
@@ -73,7 +75,7 @@
             <Button x:Name="InfiniteGameButton" Height="30" Width="90" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5" Click="InfiniteGame">Infinite Game</Button>
         </StackPanel>
 
-        <Button x:Name="StartGameButton" Grid.Column="1" Height="30" Width="100" HorizontalAlignment="Center" VerticalAlignment="Center" Background = "PowderBlue" Click="StartGame">Start game</Button>
+        <Button x:Name="StartGameButton" Grid.Column="1" Height="30" Width="100" HorizontalAlignment="Center" VerticalAlignment="Center" Background = "PowderBlue" Click="StartGame">Start Game</Button>
         
         <StackPanel  x:Name="BoardButtons" 
             Grid.Row="1"
